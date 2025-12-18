@@ -1116,12 +1116,12 @@
     </div>
 
     <script>
-        // CONFIGURAZIONE SUPABASE AGGIORNATA
-        const supabaseUrl = 'https://sfvhnggywsdekmarrxlt.supabase.co'
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmdmhuZ2d5d3NkZWttYXJyeGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0MTgyNDMsImV4cCI6MjA3OTk5NDI0M30.C0JHrInUNYdukmgxjWEBFkjLEL0BzcM2hTWBDkjvNNw'
+        // Configurazione Supabase
+        const SUPABASE_URL = 'https://sfvhnggywsdekmarrxlt.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmdmhuZ2d5d3NkZWttYXJyeGx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0MTgyNDMsImV4cCI6MjA3OTk5NDI0M30.C0JHrInUNYdukmgxjWEBFkjLEL0BzcM2hTWBDkjvNNw';
         
-        // Crea il client Supabase
-        let supabase;
+        // Client Supabase
+        let supabaseClient;
         
         // Application data
         window.exercises = [];
@@ -1143,13 +1143,13 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async function() {
-            // Inizializza Supabase
+            // Inizializza Supabase client
             try {
-                supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 console.log('✅ Supabase client inizializzato');
             } catch (error) {
                 console.error('❌ Errore inizializzazione Supabase:', error);
-                supabase = null;
+                supabaseClient = null;
             }
             
             await loadDataFromSupabase();
@@ -1206,12 +1206,12 @@
             }
         });
 
-        // FUNZIONI SUPABASE OTTIMIZZATE
+        // FUNZIONI SUPABASE
         async function loadDataFromSupabase() {
             // Prima prova a caricare da localStorage per velocità
             loadFromLocalStorage();
             
-            if (!supabase) {
+            if (!supabaseClient) {
                 console.log('Supabase non disponibile, uso localStorage');
                 return;
             }
@@ -1220,7 +1220,7 @@
                 console.log('🔄 Caricamento dati da Supabase...');
                 
                 // Carica esercizi
-                const { data: exercisesData, error: exercisesError } = await supabase
+                const { data: exercisesData, error: exercisesError } = await supabaseClient
                     .from('exercises')
                     .select('*')
                     .order('created_at', { ascending: false });
@@ -1241,7 +1241,7 @@
                 }
                 
                 // Carica eventi
-                const { data: eventsData, error: eventsError } = await supabase
+                const { data: eventsData, error: eventsError } = await supabaseClient
                     .from('events')
                     .select('*')
                     .order('created_at', { ascending: false });
@@ -1287,7 +1287,7 @@
             // Salva sempre in localStorage per backup
             localStorage.setItem('superpractice_exercises', JSON.stringify(window.exercises));
             
-            if (!supabase) {
+            if (!supabaseClient) {
                 console.log('Supabase non disponibile, salvo solo in localStorage');
                 return;
             }
@@ -1314,7 +1314,7 @@
                         corrections: exercise.corrections || []
                     };
 
-                    const { error } = await supabase
+                    const { error } = await supabaseClient
                         .from('exercises')
                         .upsert(supabaseExercise, {
                             onConflict: 'id'
@@ -1332,7 +1332,7 @@
             // Salva sempre in localStorage per backup
             localStorage.setItem('superpractice_events', JSON.stringify(window.events));
             
-            if (!supabase) {
+            if (!supabaseClient) {
                 console.log('Supabase non disponibile, salvo solo in localStorage');
                 return;
             }
@@ -1353,7 +1353,7 @@
                         participants: event.participants || []
                     };
 
-                    const { error } = await supabase
+                    const { error } = await supabaseClient
                         .from('events')
                         .upsert(supabaseEvent, {
                             onConflict: 'id'
@@ -1414,7 +1414,7 @@
         }
 
         async function uploadAudioFile(file) {
-            if (!supabase) {
+            if (!supabaseClient) {
                 console.log('Supabase not available, skipping audio upload');
                 return null;
             }
@@ -1438,7 +1438,7 @@
                 const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
                 
                 // Upload file su Supabase Storage
-                const { data, error } = await supabase.storage
+                const { data, error } = await supabaseClient.storage
                     .from('exercises')
                     .upload(`audio/${fileName}`, file, {
                         cacheControl: '3600',
@@ -1448,7 +1448,7 @@
                 if (error) throw error;
 
                 // Ottieni URL pubblico
-                const { data: urlData } = supabase.storage
+                const { data: urlData } = supabaseClient.storage
                     .from('exercises')
                     .getPublicUrl(`audio/${fileName}`);
 
